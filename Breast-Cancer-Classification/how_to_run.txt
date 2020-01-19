@@ -1,0 +1,5 @@
+1. open 'breast_cancer_classification.py' in spyder IDE.
+2. press F5 key. (wait for few min as program runs)
+3. That's it. YES!!!
+
+Thank You
