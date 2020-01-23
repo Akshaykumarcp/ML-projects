@@ -4,6 +4,13 @@ Created on Wed Dec 25 07:55:39 2019
 
 @author: Akshay Kumar C P
 """
+'''
+Refered krish naik's code for learning purpose
+'''
+
+'''
+import lib's and dataset
+'''
 
 import pandas as pd
 import numpy as np
@@ -12,9 +19,11 @@ import matplotlib.pyplot as plt
 
 train = pd.read_csv('titanic_train.csv')
 
-train.head()
 
-# EDA
+'''
+EDA
+'''
+train.head()
 
 # missing data finding
 
@@ -27,10 +36,8 @@ sb.heatmap(train.isnull(),yticklabels=False,cbar=False,cmap='viridis')
 sb.set_style('whitegrid')
 sb.countplot(x='Survived',data=train)
 
-sb.set_style('whitegrid')
 sb.countplot(x='Survived',hue='Sex',data=train)
 
-sb.set_style('whitegrid')
 sb.countplot(x='Survived',hue='Pclass',data=train)
 
 sb.distplot(train['Age'].dropna(),kde=False,color='darkred',bins=40)
@@ -39,7 +46,7 @@ sb.countplot(x='SibSp',data=train)
 
 train['Fare'].hist(color='green',bins=40,figsize=(8,4))
 
-# data cleaning - handling null calues
+# data cleaning - handling null values
 
 sb.boxplot(x='Pclass',y='Age',data=train,palette='winter')
 
@@ -72,7 +79,6 @@ train.head()
 
 # converting categorical featurews
 
-
 train.columns
 
 train.info()
@@ -91,13 +97,18 @@ train = pd.concat([train,sex,embark],axis=1)
 
 train.info()
 
-# logistic re
-
+'''
+Split dataset into train and test
+'''
 # train test split
 
 from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(train.drop('Survived',axis=1),train['Survived'],test_size=0.3,random_state=101)
+
+'''
+applying logistic regression model
+'''
 
 from sklearn.linear_model import LogisticRegression
 
@@ -117,5 +128,56 @@ from sklearn.metrics import accuracy_score
 accu_score = accuracy_score(y_test,predic)
 
 accu_score
+# accuracy of 0.77
 
-# apply xgboost and random forst R
+'''
+applying xgboost model
+'''
+
+import xgboost as xgb
+
+XGBModel = xgb.XGBClassifier()
+XGBModel.fit(X_train,y_train)
+
+XGBPredict = XGBModel.predict(X_test)
+
+XGBScore = accuracy_score(y_test,XGBPredict)
+# accuracy of 0.80
+
+'''
+applying RandomForestClassifier model
+'''
+
+from sklearn.ensemble import RandomForestClassifier
+
+RFCModel = RandomForestClassifier()
+RFCModel.fit(X_train,y_train)
+
+RFCPredict = RFCModel.predict(X_test)
+
+RFCScore = accuracy_score(y_test,RFCPredict)
+# accuracy of 0.79
+
+from sklearn.model_selection import GridSearchCV
+
+RFCParams = {
+        'n_estimators' : [320,330,340],
+        'max_depth':[8,9,10,11,12],
+        'min_samples_leaf' : [2,4],
+        'max_features' : ['auto','sqrt','log2'],
+        'criterion' : ['gini','entropy'],
+        }
+
+RFCGridCV = GridSearchCV(RFCModel,param_grid=RFCParams,cv=5)
+RFCGridCV.fit(X_train,y_train)
+
+RFCGridCV.best_params_
+
+RFCGridCV.best_estimator_
+
+RFCGridCVPredict = RFCGridCV.predict(X_test)
+
+RFCGridCVPredictScore = accuracy_score(y_test,RFCGridCVPredict)
+
+
+
