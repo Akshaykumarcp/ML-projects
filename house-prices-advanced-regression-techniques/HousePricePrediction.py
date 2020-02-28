@@ -40,7 +40,9 @@ what we do in data analysis  !!!!
 7. relationship between independent and dependent features 
 
 '''
-
+'''
+EDA 
+'''
 # missing values present
 
 df_train.isnull().sum()
@@ -203,10 +205,115 @@ for feature in categorical_features:
 
 # Find out the relationship between categorical variable and dependent feature
     
-    for feature in categorical_features:
-        data=df_train.copy()
-        data.groupby(feature)['SalePrice'].median().plot.bar()
-        plt.xlabel(feature)
-        plt.ylabel('SalePrice')
-        plt.title(feature)
-        plt.show()
+for feature in categorical_features:
+    data=df_train.copy()
+    data.groupby(feature)['SalePrice'].median().plot.bar()
+    plt.xlabel(feature)
+    plt.ylabel('SalePrice')
+    plt.title(feature)
+    plt.show()
+    
+'''
+feature engineering
+'''
+
+# replace 
+
+def replace_cat_feature(df_train,categorical_features):
+    data[categorical_features] = data[categorical_features].fillna('Missing')
+    return data
+
+df_train = replace_cat_feature(df_train,categorical_features)
+
+df_train[categorical_features].isnull().sum()
+
+df_train[categorical_features].head()
+
+# let's wprk on numerical features as same above
+
+# let's check for numerical features having nan values
+
+numerical_with_nan = [feature for feature in df_train.columns if df_train[feature].isnull().sum()>1 and df_train[feature].dtypes != 'O']
+
+
+for feature in numerical_with_nan:
+    print('{}:{}% missing values'.format(feature,np.round(df_train[feature].isnull().mean(),4)))
+
+# replace numerical missing values
+    
+for feature in numerical_with_nan:
+        # replace by mean
+    meadian_value = df_train[feature].median()
+        # create new feature indicating 1 for nan and 0 for no nan
+    df_train[feature+'nan'] = np.where(df_train[feature].isnull(),1,0)
+    df_train[feature].fillna(meadian_value,inplace=True)
+        
+df_train[numerical_with_nan].isnull().sum()
+
+df_train.head()
+    
+# next temporal variables (date time variables)
+
+# as no of year sold is decresing so we'll convert yearbuild to how many year. similar to yearremoadd and garageyearbuilt
+
+for feature in ['YearBuilt', 'YearRemodAdd', 'GarageYrBlt']:
+    df_train[feature] = df_train['YrSold'] - df_train[feature]
+
+df_train[['YearBuilt', 'YearRemodAdd', 'GarageYrBlt']].head()
+
+# since numerical variables are skewed, so we'll log normal distribution
+
+# considering values which does not have zero values
+# skewed means not in gausssian distribution
+
+num_features = ['LotFrontage','LotArea','1stFlrSF','GrLivArea','SalePrice']
+
+for feature in num_features:
+    df_train[feature] = np.log(df_train[feature])
+    
+# handling rare categorical feature
+    
+# not much imp, i,e for MSZoning - 4-5 categories. 1 category is less than 1 % of total so let's convert into a new label
+# we'll do for all categorical features
+    
+for feature in categorical_features:
+    temp = df_train.groupby(feature)['SalePrice'].count()/len(df_train)
+    temp_df = temp[temp>0.01].index
+    df_train[feature] = np.where(df_train[feature].isin(temp_df),df_train[feature],'Rare_var')
+    
+df_train.head()
+
+# feature scaling
+
+# standart scaler can also be applied
+
+feature_scale=[feature for feature in df_train.columns if feature not in ['Id','SalePrice']]
+
+from sklearn.preprocessing import StandardScaler
+scaler=StandardScaler()
+scaler.fit(df_train[feature_scale])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
