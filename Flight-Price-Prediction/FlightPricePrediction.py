@@ -165,3 +165,45 @@ df_complete['Route 2'] = encoder.fit_transform(df_complete['Route 2'])
 df_complete['Route 3'] = encoder.fit_transform(df_complete['Route 3'])
 df_complete['Route 4'] = encoder.fit_transform(df_complete['Route 4'])
 df_complete['Route 5'] = encoder.fit_transform(df_complete['Route 5'])
+
+'''
+feature selection
+'''
+
+from sklearn.linear_model import Lasso
+from sklearn.feature_selection import SelectFromModel
+
+# split into train and test after doing feature engineering
+
+df_train2 = df_complete[0:10683]
+df_test2 = df_complete[10683:]
+
+X = df_train2.drop(['Price'],axis=1)
+y= df_train2.Price
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3,random_state=0)
+
+# apply feature section on X_train
+
+# lasso has a penalty paramter i,e more feature , it penalizes features. if alpha values is greate les features will be seleceted
+
+# initialze the ovbject
+model = SelectFromModel(Lasso(alpha=0.005, random_state=0))
+
+model.fit(X_train,y_train)
+
+model.get_support()
+
+selected_features = X_train.columns[(model.get_support())]
+
+# year feature has weaker cor so let's drop
+
+X_train = X_train.drop(['Year'],axis=1)
+
+X_test = X_test.drop(['Year'],axis=1)
+
+# model building linear regression, dicision tree regression  , XGBoost etc
+
+
