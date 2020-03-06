@@ -207,3 +207,69 @@ X_test = X_test.drop(['Year'],axis=1)
 # model building linear regression, dicision tree regression  , XGBoost etc
 
 
+# apply randomforestRegressor
+
+from sklearn.model_selection import RandomizedSearchCV #CV
+
+# no of trees in random forest
+n_estimators = [int(x) for x in np.linspace(start=100,stop=1200,num=12)]
+
+# no of features to consider at every split
+max_features = ['auto','sqrt']
+
+# max no of level in trees
+max_depth = [int(x) for x in np.linspace(5,30,num=6)]
+
+# min no of samples required to split a node
+min_sample_split = [2,5,10,15,100]
+
+# min no of samples required at each leaf node
+min_sample_leaf = [1,2,5,10]
+
+# creating random grid
+
+random_grid = {
+        'n_estimators': n_estimators,
+        'max_features' : max_features,
+        'max_depth' : max_depth,
+        'min_samples_split':min_sample_split,
+        'min_samples_leaf':min_sample_leaf
+        }
+
+print(random_grid)
+
+# use the random grid to search for best hyperparameter
+
+# first create the base model to tune
+
+from sklearn.ensemble import RandomForestRegressor
+RFRModel = RandomForestRegressor()
+
+# random search of parameters, using 3 fold CV
+# search accorss 50 different combinations
+
+# 50 X 5 = 50 times
+
+RFRModelCV = RandomizedSearchCV(estimator= RFRModel, param_distributions= random_grid,scoring='neg_mean_squared_error',n_iter = 50, cv = 5,verbose=2,random_state=0)
+
+RFRModelCV.fit(X_train,y_train)
+
+y_pred = RFRModelCV.predict(X_test)
+
+RFRModelCV.best_params_
+
+RFRModelCV.best_score_
+
+import seaborn as sb
+
+sb.distplot(y_test,y_pred)
+
+plt.scatter(y_test,y_pred)
+
+from sklearn import metrics
+
+print('MAE:', metrics.mean_absolute_error(y_test, y_pred))
+print('MSE:', metrics.mean_squared_error(y_test, y_pred))
+print('RMSE:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+
+# can also implement other algo's and compare MSE
